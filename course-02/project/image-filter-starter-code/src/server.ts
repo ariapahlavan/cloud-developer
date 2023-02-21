@@ -34,7 +34,7 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
           res.status(404).send('Please provide an `image_url` query parameter.')
       }
       try {
-          const path = await filterImageFromURL(image_url);
+          const path: string = await filterImageFromURL(image_url);
           res.sendFile(path);
           res.on('finish', async () => await deleteLocalFiles([path]));
       } catch (_e) {
