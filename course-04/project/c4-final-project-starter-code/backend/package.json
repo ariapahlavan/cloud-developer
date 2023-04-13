@@ -29,6 +29,12 @@
     "typescript": ">=3.8.0",
     "webpack": "^4.29.6"
   },
+  "engines": {
+    "node": "12.22.12"
+  },
+  "volta": {
+    "node": "12.22.12"
+  },
   "author": "Ivan Mushketyk",
   "license": "MIT"
 }
