@@ -11,6 +11,14 @@ import { getUserId } from '../utils'
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const todoId = event.pathParameters.todoId
+    if (!todoId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: 'Missing request param: todoId'
+        })
+      }
+    }
     const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
     const userId = getUserId(event);
     await updateTodo(todoId, userId, updatedTodo);

@@ -1,5 +1,5 @@
-org: apOrg
-app: serverless-todo-app
+org: ariapahlavan
+app: ap-todos
 service: serverless-todo-app
 
 plugins:
@@ -19,12 +19,10 @@ provider:
     lambda: true
     apiGateway: true
 
-  # Use these variables in the functions and resouorces section below. For example,
-  # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-703183150069-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -65,7 +63,6 @@ functions:
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
 
   CreateTodo:
-    # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
     handler: src/lambda/http/createTodo.handler
     events:
       - http:
@@ -74,7 +71,7 @@ functions:
           cors: true
           authorizer: Auth
           request:
-            schemas:
+            schema:
               application/json: ${file(models/create-todo-model.json)}
     iamRoleStatements:
       - Effect: Allow
@@ -91,13 +88,13 @@ functions:
           cors: true
           authorizer: Auth
           request:
-            schemas:
+            schema:
               application/json: ${file(models/update-todo-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
-          - dynamodb:PutItem
+          - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   DeleteTodo:
@@ -128,6 +125,7 @@ functions:
         Action:
           - dynamodb:GetItem
           - dynamodb:PutItem
+          - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
       - Effect: Allow
         Action:
@@ -148,20 +146,27 @@ resources:
         RestApiId:
           Ref: ApiGatewayRestApi
 
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
           - AttributeName: todoId
             AttributeType: S
-          - AttributeName: createdAt
-            AttributeType: S
           - AttributeName: userId
             AttributeType: S
         KeySchema:
           - AttributeName: todoId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: userId
             KeyType: RANGE
         GlobalSecondaryIndexes:
           - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}

@@ -32,7 +32,7 @@ export const createTodo = async (request: CreateTodoRequest, userId: string): Pr
 }
 
 const validateExistingTodoItem = async (todoId: string, userId: string) => {
-  const existingTodo = await todosAccess.getTodoById(todoId);
+  const existingTodo = await todosAccess.getTodoById(todoId, userId);
   if (!existingTodo) {
     throw createError(404, `TODO with id ${todoId} was not found`);
   }
@@ -48,18 +48,18 @@ export const updateTodo = async (
   updatedTodo: UpdateTodoRequest
 ): Promise<void> => {
   await validateExistingTodoItem(todoId, userId);
-  await todosAccess.updateTodoById(todoId, updatedTodo);
+  await todosAccess.updateTodoById(todoId, userId, updatedTodo);
 }
 
 export const deleteTodo = async (todoId: string, userId: string) => {
   await validateExistingTodoItem(todoId, userId);
-  await todosAccess.deleteTodoById(todoId);
+  await todosAccess.deleteTodoById(todoId, userId);
 }
 
 export const createAttachmentPresignedUrl = async (todoId: string, userId: string): Promise<string> => {
   await validateExistingTodoItem(todoId, userId);
   const attachmentUrl: string = `https://${attachmentBucketName}.s3.amazonaws.com/${todoId}`;
-  await todosAccess.addTodoAttachmentById(todoId, attachmentUrl)
+  await todosAccess.addTodoAttachmentById(todoId, userId, attachmentUrl)
 
   return createUploadUrl(todoId, attachmentBucketName);
 }

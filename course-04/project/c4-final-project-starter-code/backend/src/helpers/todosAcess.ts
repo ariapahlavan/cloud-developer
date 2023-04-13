@@ -40,20 +40,21 @@ export class TodosAcess {
     return newItem;
   }
 
-  async getTodoById(todoId: string): Promise<TodoItem> {
+  async getTodoById(todoId: string, userId: string): Promise<TodoItem> {
     const result = await this.docClient.get({
       TableName: this.todosTable,
-      Key: { todoId }
+      Key: { todoId, userId }
     }).promise()
 
     return result.Item ? result.Item as TodoItem : undefined;
   }
 
-  async updateTodoById(todoId: string, todoUpdate: TodoUpdate): Promise<void> {
+  async updateTodoById(todoId: string, userId: string, todoUpdate: TodoUpdate): Promise<void> {
     await this.docClient.update({
       TableName: this.todosTable,
-      Key: { todoId },
-      UpdateExpression: 'set name = :name, dueDate = :dueDate, done = :done',
+      Key: { todoId, userId },
+      UpdateExpression: 'set #nameattr = :name, dueDate = :dueDate, done = :done',
+      ExpressionAttributeNames: { '#nameattr': 'name' },
       ExpressionAttributeValues: {
         ':name': todoUpdate.name,
         ':dueDate': todoUpdate.dueDate,
@@ -62,19 +63,19 @@ export class TodosAcess {
     }).promise()
   }
 
-  async addTodoAttachmentById(todoId: string, attachmentUrl: string): Promise<void> {
+  async addTodoAttachmentById(todoId: string, userId: string, attachmentUrl: string): Promise<void> {
     await this.docClient.update({
       TableName: this.todosTable,
-      Key: { todoId },
+      Key: { todoId, userId },
       UpdateExpression: 'set attachmentUrl = :attachmentUrl',
       ExpressionAttributeValues: { ':attachmentUrl': attachmentUrl },
     }).promise()
   }
 
-  async deleteTodoById(todoId: string): Promise<void> {
+  async deleteTodoById(todoId: string, userId: string): Promise<void> {
     await this.docClient.delete({
       TableName: this.todosTable,
-      Key: { todoId }
-    })
+      Key: { todoId, userId }
+    }).promise();
   }
 }

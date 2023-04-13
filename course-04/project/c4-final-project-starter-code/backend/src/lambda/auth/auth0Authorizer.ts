@@ -70,7 +70,7 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const jwksKeys: JwksKey[] = jwksResponse.data.keys;
   const cert: string = jwksKeys.filter(x => x.kid === jwt.header.kid)[0].x5c[0];
 
-  return verify(token, cert, { algorithms: ['RS256'] }) as JwtPayload;
+  return verify(token, certToPEM(cert), { algorithms: ['RS256'] }) as JwtPayload;
 }
 
 function getToken(authHeader: string): string {
@@ -83,4 +83,10 @@ function getToken(authHeader: string): string {
   const token = split[1]
 
   return token
+}
+
+function certToPEM(cert) {
+  cert = cert.match(/.{1,64}/g).join('\n');
+  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`;
+  return cert;
 }
